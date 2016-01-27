@@ -47,13 +47,22 @@ namespace AlsSampleOpcClient
             while (key.KeyChar == 'd' || key.KeyChar == 'u')
             {
                 Console.WriteLine();
-                if(key.KeyChar=='d')
-                {
-                    Da();
+                try { 
+                    if(key.KeyChar=='d')
+                    {
+                        Da();
+                    }
+                    else
+                    {
+                        Ua();
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Ua();
+                    Console.ForegroundColor = ConsoleColor.Black;
+                    Console.BackgroundColor= ConsoleColor.Yellow;
+                    Console.WriteLine(string.Format("Exception: {0}", ex.Message));
+                    Console.ResetColor();
                 }
                 key = UaOrDa();
             }
@@ -120,6 +129,7 @@ namespace AlsSampleOpcClient
             }
 
             uaClient.UnsubscribeAllMonitoredItems();
+            uaClient.Dispose();
 
 
 
@@ -176,6 +186,7 @@ namespace AlsSampleOpcClient
 
             
             daClient.UnsubscribeAllItems();
+            daClient.Dispose();
 
         }
     }
