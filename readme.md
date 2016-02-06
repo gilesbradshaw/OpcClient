@@ -1,4 +1,4 @@
-# Example Opc client using OPC Labs s/w
+# Example Opc client using OPC Labs client software
 
 You will need.. 
 
