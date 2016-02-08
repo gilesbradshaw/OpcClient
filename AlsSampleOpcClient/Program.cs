@@ -23,13 +23,13 @@ namespace AlsSampleOpcClient
         
         static void Writing(object value)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(string.Format("writing {0}", value));
+            using(new ConsoleColourer(ConsoleColor.Green, ConsoleColor.Black))
+                Console.WriteLine(string.Format("writing {0}", value));
         }
 
         static void Read(object value)
         {
-            Console.ForegroundColor = ConsoleColor.Magenta;
+            using (new ConsoleColourer(ConsoleColor.Magenta, ConsoleColor.Black))
             Console.WriteLine(string.Format("READ: {0}", value));
         }
 
@@ -37,20 +37,21 @@ namespace AlsSampleOpcClient
         {
             lock (consoleLock)
             {
-
-                if(quality)
-                    Console.ForegroundColor= ConsoleColor.Green;
-                else
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                TitleDisplay(config);
-                var line = int.Parse(config.Attribute("line").Value);
-                var startCol = int.Parse(config.Attribute("col").Value) * 40;
-
-                using (new ConsolePositioner(startCol + 15, line, 10))
+                using (new ConsoleColourer(quality ? ConsoleColor.Green : ConsoleColor.Yellow, ConsoleColor.Black))
                 {
-                    Console.Write(value);
+                    TitleDisplay(config);
+                    var line = int.Parse(config.Attribute("line").Value);
+                    var startCol = int.Parse(config.Attribute("col").Value) * 40;
+
+                    using (new ConsolePositioner(startCol + 15, line, 10))
+                    {
+                        Console.Write(value);
+                    }
+
+
                 }
-                
+
+                               
 
             }
         }
@@ -78,18 +79,19 @@ namespace AlsSampleOpcClient
 
             lock (consoleLock)
             {
-
-                Console.ForegroundColor = ConsoleColor.Red;
-                TitleDisplay(config);
-
-                var line = int.Parse(config.Attribute("line").Value);
-                var startCol = int.Parse(config.Attribute("col").Value) * 40;
-
-                using (new ConsolePositioner(startCol + 15, line, 24))
+                using (new ConsoleColourer(ConsoleColor.Red, ConsoleColor.Black))
                 {
-                    Console.Write(ex.GetType().Name);
-                    Console.ResetColor();
+                    TitleDisplay(config);
+
+                    var line = int.Parse(config.Attribute("line").Value);
+                    var startCol = int.Parse(config.Attribute("col").Value) * 40;
+
+                    using (new ConsolePositioner(startCol + 15, line, 24))
+                    {
+                        Console.Write(ex.GetType().Name);
+                    }
                 }
+                
                 
             }
 
@@ -99,6 +101,9 @@ namespace AlsSampleOpcClient
         
         static void Main(string[] args)
         {
+           Console.BackgroundColor = ConsoleColor.Black;
+           Console.ForegroundColor = ConsoleColor.Gray;
+
            try {
                 switch(args[0].ToLower()){
                         case "d":
@@ -125,10 +130,9 @@ namespace AlsSampleOpcClient
                 }
                 catch (Exception ex)
                 {
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.BackgroundColor= ConsoleColor.Yellow;
-                    Console.WriteLine(string.Format("Exception: {0}", ex.Message));
-                    Console.ResetColor();
+                    using (new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
+                        Console.WriteLine(string.Format("Exception: {0}", ex.Message));
+                    
                 }
 
             
@@ -140,10 +144,9 @@ namespace AlsSampleOpcClient
         static void Ua()
         {
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("UA! Enter any number to write a value return to exit");
-            Console.ResetColor();
-
+            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
+                Console.WriteLine("UA! Enter any number to write a value return to exit");
+            
 
             var uaClient = new EasyUAClient();
 
@@ -224,9 +227,8 @@ namespace AlsSampleOpcClient
         static void Da()
         {
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("DA! Enter any number to write a value or return to exit");
-            Console.ResetColor();
+            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
+                Console.WriteLine("DA! Enter any number to write a value or return to exit");
             var daClient = new OpcLabs.EasyOpc.DataAccess.EasyDAClient();
 
             daClient.ItemChanged += (sender, e) => {
@@ -310,10 +312,9 @@ namespace AlsSampleOpcClient
         {
 
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("reactive DA! Enter id <space> value to write a value,  Return to quit");
-            Console.ResetColor();
-
+            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
+                Console.WriteLine("reactive DA! Enter id <space> value to write a value,  Return to quit");
+            
 
             var daClient = new EasyDAClient();
 
@@ -411,9 +412,8 @@ namespace AlsSampleOpcClient
         {
             
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("reactive UA! Enter id <space> value to write a value,  Return to quit");
-            Console.ResetColor();
+            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
+                Console.WriteLine("reactive UA! Enter id <space> value to write a value,  Return to quit");
             
 
             var uaClient = new EasyUAClient();
@@ -540,10 +540,9 @@ namespace AlsSampleOpcClient
         {
 
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("reactive UA simulation! Press a key to quit.");
-            Console.ResetColor();
-
+            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
+                Console.WriteLine("reactive UA simulation! Press a key to quit.");
+            
 
             var uaClient = new EasyUAClient();
 
@@ -669,7 +668,26 @@ namespace AlsSampleOpcClient
         public void Dispose()
         {
             Console.SetCursorPosition(_left, _top);
-            Console.ResetColor();
+        }
+    }
+
+
+
+    public class ConsoleColourer : IDisposable
+    {
+        ConsoleColor _foreGround, _backGround;
+        public ConsoleColourer( ConsoleColor foreground, ConsoleColor backGround)
+        {
+            _foreGround = Console.ForegroundColor;
+            _backGround = Console.BackgroundColor;
+            Console.ForegroundColor= foreground;
+            Console.BackgroundColor = backGround;
+        }
+
+        public void Dispose()
+        {
+            Console.ForegroundColor= _foreGround;
+            Console.BackgroundColor = _backGround;
         }
     }
 }
