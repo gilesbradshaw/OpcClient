@@ -146,21 +146,24 @@ namespace AlsSampleOpcClient
             Console.Clear();
             using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
                 Console.WriteLine("UA! Enter any number to write a value return to exit");
-            
 
+            new ConsolePositioner(0, 9, Console.BufferWidth);
             var uaClient = new EasyUAClient();
 
-            uaClient.MonitoredItemChanged += (sender, e) =>
+            uaClient.MonitoredItemChanged += (sender, val) =>
                 {
-                    lock(consoleLock)
-                        using (new ConsolePositioner(0, 5, Console.BufferWidth))
-                            Console.Write(
-                                 string.Format("{0} {1} {2}",
-                                     e.Arguments.State,
-                                     e.AttributeData.StatusCode,
-                                     e.AttributeData.Value
-                                 )
-                            );
+                    lock (consoleLock)
+                        using (new ConsolePositioner(0, 6, Console.BufferWidth*2))
+                            using (new ConsoleColourer(val.Succeeded ? ConsoleColor.Gray : ConsoleColor.Yellow, ConsoleColor.Black))
+                                Console.WriteLine(
+                                      string.Format("ua observed {0} {1} {2}",
+                                          val.Arguments.State,
+                                          val.Succeeded ? val.AttributeData.StatusCode.ToString() : val.ErrorMessageBrief,
+                                          val.Succeeded ? val.AttributeData.Value : ""
+                                      )
+                                 );
+                            
+                        
                 };
 
 
@@ -176,42 +179,68 @@ namespace AlsSampleOpcClient
                 .Subscribe(val =>
                     {
                         lock (consoleLock)
-                            using (new ConsolePositioner(0, 4, Console.BufferWidth))
-                                Console.WriteLine(
-                                     string.Format("Rx ua observed {0} {1} {2}",
-                                         val.Arguments.State,
-                                         val.AttributeData.StatusCode,
-                                         val.AttributeData.Value
-                                     )
-                                );
+                            using (new ConsolePositioner(0, 4, Console.BufferWidth * 2))
+                                using (new ConsoleColourer(val.Succeeded ? ConsoleColor.Gray : ConsoleColor.Yellow, ConsoleColor.Black))
+                                   Console.WriteLine(
+                                         string.Format("Rx ua observed {0} {1} {2}",
+                                             val.Arguments.State,
+                                             val.Succeeded ? val.AttributeData.StatusCode.ToString() : val.ErrorMessageBrief,
+                                             val.Succeeded ? val.AttributeData.Value : ""
+                                         )
+                                    );
+                            
+                                
+                                
                     }
                 );
 
-
-            UAAttributeData attributeData = uaClient.Read(
+            try
+            {
+                UAAttributeData attributeData = uaClient.Read(
                 "opc.tcp://127.0.0.1:49320/",
                 "ns=2;s=Channel1.Device1.Tag1");
 
-            lock (consoleLock)
-                using (new ConsolePositioner(0, 3, Console.BufferWidth))
-                     Read(attributeData.DisplayValue());
+                lock (consoleLock)
+                    using (new ConsolePositioner(0, 3, Console.BufferWidth))
+                        Read(attributeData.DisplayValue());
 
-            new ConsolePositioner(0, 7, Console.BufferWidth);
+            }
+            catch (Exception ex)
+            {
+                lock (consoleLock)
+                    using (new ConsolePositioner(0, 3, Console.BufferWidth))
+                        using(new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
+                            Console.Write(string.Format("No read: {0}", ex.GetType().Name));
+            }
+            
+            lock(consoleLock)
+                new ConsolePositioner(0, 9, Console.BufferWidth);
+
             var key = Console.ReadLine();
             
             while (key!="")
             {
                 lock (consoleLock)
-                    using (new ConsolePositioner(0, 6, Console.BufferWidth))
+                    using (new ConsolePositioner(0, 8, Console.BufferWidth * 5))
                         Writing(key);
-                uaClient.WriteValue(
-                    new UAWriteValueArguments(
-                        "opc.tcp://127.0.0.1:49320/",
-                       "ns=2;s=Channel1.Device1.Tag1",
-                        key
-                    )
-                );
-                new ConsolePositioner(0, 7, Console.BufferWidth);
+                try {
+                    uaClient.WriteValue(
+                        new UAWriteValueArguments(
+                            "opc.tcp://127.0.0.1:49320/",
+                           "ns=2;s=Channel1.Device1.Tag1",
+                            key
+                        )
+                    );
+                }
+                catch (Exception ex)
+                {
+                    lock (consoleLock)
+                        using (new ConsolePositioner(0, 10, Console.BufferWidth * 3))
+                            using(new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
+                                Console.Write(ex.Message);
+                }
+                lock (consoleLock)
+                    new ConsolePositioner(0, 9, Console.BufferWidth);
                 key = Console.ReadLine();
             }
             rxUaSubscription.Dispose();
@@ -429,7 +458,7 @@ namespace AlsSampleOpcClient
 
             var subs = myTags
                 .Select(
-                    tag => ItemValue.UaObservable(
+                    tag => UaObserver.UaObservable(
                         tag.Attribute("id").Value,
                         tag.Parent.Element("ua").Attribute("endpoint").Value,
                         tag.Parent.Element("ua").Attribute("nodePrefix").Value + tag.Attribute("node").Value,
@@ -437,7 +466,7 @@ namespace AlsSampleOpcClient
                         tag.Attribute("type").Value
                     )
                         .Subscribe(
-                            val => PosDisplay(tag,val.Value, val.Good),
+                            val => PosDisplay(tag,val.Succeeded ? val.AttributeData.Value : "", val.Succeeded ? val.AttributeData.HasGoodStatus: false),
                             (ex) => ExceptionDisplay(tag, ex), 
                             ()=>{}
                         )
@@ -508,7 +537,7 @@ namespace AlsSampleOpcClient
             
             var subs = myTags
                 .Select(
-                    tag => ItemValue.UaObservable(
+                    tag => UaObserver.UaObservable(
                         tag.Attribute("id").Value,
                         tag.Parent.Element("ua").Attribute("endpoint").Value,
                         tag.Parent.Element("ua").Attribute("nodePrefix").Value + tag.Attribute("node").Value,
@@ -521,7 +550,10 @@ namespace AlsSampleOpcClient
                                 lock(locker)
                                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(logFileName, true))
                                     {
-                                        var log = string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value, val.Value, val.Good, DateTime.Now.ToLongTimeString());
+
+                                        var log = val.Succeeded
+                                             ? string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value, val.AttributeData.Value, val.AttributeData.HasGoodStatus, DateTime.Now.ToLongTimeString())
+                                             : string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value, "", false, DateTime.Now.ToLongTimeString());
                                         file.WriteLine(log);
                                         Console.WriteLine(log);
                                     }
@@ -583,13 +615,10 @@ namespace AlsSampleOpcClient
     }
 
 
-    //static method to create an IObservable of itself which gets ua disconnects
-    public class ItemValue
+    //static class create a ua IObservable of multiple types
+    public static class UaObserver
     {
-        public object Value { get ; set;}
-        public bool Good { get;set;}
-
-        static public IObservable<ItemValue> UaObservable(object status, string endpoint, string node, int updateInterval, string type)
+        static public IObservable<EasyUAMonitoredItemChangedEventArgs> UaObservable(object status, string endpoint, string node, int updateInterval, string type)
         {
             var args = new EasyUAMonitoredItemArguments(
                 status,
@@ -597,68 +626,24 @@ namespace AlsSampleOpcClient
                 node,
                 updateInterval
             );
-            var uaClient = new EasyUAClient();
+            
 
-
-            var check =  (Observable.Return<long>(0).Concat(Observable.Interval(
-                TimeSpan.FromSeconds(60))).Select(t =>
-                    {
-                        try
-                        {
-                            return uaClient.Read(
-                                endpoint,
-                                node
-                            ).HasGoodStatus;
-                        }
-                        catch (Exception)
-                        {
-                            return false;
-                        } 
-                    }
-                ).Distinct());
-
-
-            return check.SelectMany(c =>
+            switch (type)
             {
-                if (!c)
-                {
-                    return Observable.Return(new ItemValue{Good=false});
-                }
-                else
-                {
-                    IObservable<EasyUAMonitoredItemChangedEventArgs> ret = null;
-                    switch (type)
-                    {
-                        case "int":
-                            ret = UAMonitoredItemChangedObservable.Create<int>(args);
-                            break;
-                        case "bool":
-                            ret = UAMonitoredItemChangedObservable.Create<bool>(args);
-                            break;
-                        case "double":
-                            ret = UAMonitoredItemChangedObservable.Create<double>(args);
-                            break;
-                        case "float":
-                            ret = UAMonitoredItemChangedObservable.Create<Single>(args);
-                            break;
-                        default:
-                            ret = UAMonitoredItemChangedObservable.Create<string>(args);
-                            break;
-                    }
-                    return ret.Select(
-                        r => new ItemValue
-                        {
-                            Value = r.AttributeData != null ? r.AttributeData.Value : null,
-                            Good = r.AttributeData != null && r.AttributeData.StatusCode.ToString().StartsWith("Good")
-                        }
-                    );
-                }
-            });
-            
-
-            
-        } 
-    }
+                case "int":
+                    return UAMonitoredItemChangedObservable.Create<int>(args);
+                           
+                case "bool":
+                    return UAMonitoredItemChangedObservable.Create<bool>(args);
+                case "double":
+                    return UAMonitoredItemChangedObservable.Create<double>(args);
+                case "float":
+                    return UAMonitoredItemChangedObservable.Create<Single>(args);
+                default:
+                    return UAMonitoredItemChangedObservable.Create<string>(args);
+            }
+        }
+    } 
 
     public class ConsolePositioner : IDisposable
     {
