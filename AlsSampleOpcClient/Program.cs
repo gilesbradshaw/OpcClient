@@ -19,20 +19,24 @@ namespace AlsSampleOpcClient
 {
     class Program
     {
+        //locks access to the console
         static readonly object consoleLock = new object();
         
+        //writing a value
         static void Writing(object value)
         {
             using(new ConsoleColourer(ConsoleColor.Green, ConsoleColor.Black))
                 Console.WriteLine(string.Format("writing {0}", value));
         }
 
+        //Read a value
         static void Read(object value)
         {
             using (new ConsoleColourer(ConsoleColor.Magenta, ConsoleColor.Black))
-            Console.WriteLine(string.Format("READ: {0}", value));
+                Console.WriteLine(string.Format("READ: {0}", value));
         }
 
+        //displays a tag value at a position
         static void PosDisplay(XElement config, object value, bool quality)
         {
             lock (consoleLock)
@@ -47,15 +51,11 @@ namespace AlsSampleOpcClient
                     {
                         Console.Write(value);
                     }
-
-
                 }
-
-                               
-
             }
         }
 
+        //displays a tag title
         static XElement TitleDisplay(XElement config)
         {
             lock (consoleLock)
@@ -74,6 +74,7 @@ namespace AlsSampleOpcClient
             }
         }
 
+        //displays a tag exception
         static void ExceptionDisplay(XElement config, Exception ex)
         {
 
@@ -91,10 +92,7 @@ namespace AlsSampleOpcClient
                         Console.Write(ex.GetType().Name);
                     }
                 }
-                
-                
             }
-
         }
 
 
@@ -104,6 +102,7 @@ namespace AlsSampleOpcClient
            Console.BackgroundColor = ConsoleColor.Black;
            Console.ForegroundColor = ConsoleColor.Gray;
 
+           //pick an option based on command line
            try {
                 switch(args[0].ToLower()){
                         case "d":
@@ -141,6 +140,7 @@ namespace AlsSampleOpcClient
         }
 
 
+        // simple ua client with hard coded config
         static void Ua()
         {
             Console.Clear();
@@ -217,13 +217,9 @@ namespace AlsSampleOpcClient
             rxUaSubscription.Dispose();
             uaClient.UnsubscribeAllMonitoredItems();
             uaClient.Dispose();
-
-
-
-
         }
 
-
+        // simple da client with hard coded config
         static void Da()
         {
             Console.Clear();
@@ -307,7 +303,7 @@ namespace AlsSampleOpcClient
 
         }
 
-
+        // configured da client using rx
         static void DaRx(string fileName)
         {
 
@@ -407,7 +403,7 @@ namespace AlsSampleOpcClient
 
 
 
-
+        // configured ua client using rx
         static void UaRx(string fileName)
         {
             
@@ -488,7 +484,7 @@ namespace AlsSampleOpcClient
             uaClient.Dispose();
         }
 
-
+        // configured ua logging client using rx
         static void UaLog(string fileName, string logFileName)
         {
 
@@ -501,8 +497,6 @@ namespace AlsSampleOpcClient
                     file.WriteLine(titleRow);
                 }
             }
-
-
 
             var config = XDocument.Load(fileName);
 
@@ -547,7 +541,7 @@ namespace AlsSampleOpcClient
 
 
 
-
+        // ua simulator hard coded + hard coded config
         static void UaRxSim()
         {
 
@@ -588,6 +582,8 @@ namespace AlsSampleOpcClient
 
     }
 
+
+    //static method to create an IObservable of itself which gets ua disconnects
     public class ItemValue
     {
         public object Value { get ; set;}
