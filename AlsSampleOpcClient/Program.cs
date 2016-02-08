@@ -433,7 +433,13 @@ namespace AlsSampleOpcClient
 
             var subs = myTags
                 .Select(
-                    tag=>ItemValue.UaObservable(tag)
+                    tag => ItemValue.UaObservable(
+                        tag.Attribute("id").Value,
+                        tag.Parent.Element("ua").Attribute("endpoint").Value,
+                        tag.Parent.Element("ua").Attribute("nodePrefix").Value + tag.Attribute("node").Value,
+                        int.Parse(tag.Attribute("updateInterval").Value),
+                        tag.Attribute("type").Value
+                    )
                         .Subscribe(
                             val => PosDisplay(tag,val.Value, val.Good),
                             (ex) => ExceptionDisplay(tag, ex), 
@@ -508,7 +514,13 @@ namespace AlsSampleOpcClient
             
             var subs = myTags
                 .Select(
-                    tag => ItemValue.UaObservable(tag)
+                    tag => ItemValue.UaObservable(
+                        tag.Attribute("id").Value,
+                        tag.Parent.Element("ua").Attribute("endpoint").Value,
+                        tag.Parent.Element("ua").Attribute("nodePrefix").Value + tag.Attribute("node").Value,
+                        int.Parse(tag.Attribute("updateInterval").Value),
+                        tag.Attribute("type").Value
+                    )
                         .Subscribe(
                             val => {
                                 var uaConfig = tag.Parent.Element("ua");
@@ -581,14 +593,13 @@ namespace AlsSampleOpcClient
         public object Value { get ; set;}
         public bool Good { get;set;}
 
-        static public IObservable<ItemValue> UaObservable(XElement tag)
+        static public IObservable<ItemValue> UaObservable(object status, string endpoint, string node, int updateInterval, string type)
         {
-            var uaConfig = tag.Parent.Element("ua");
             var args = new EasyUAMonitoredItemArguments(
-                tag.Attribute("id").Value,
-                uaConfig.Attribute("endpoint").Value,
-                uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value,
-                int.Parse(tag.Attribute("updateInterval").Value)
+                status,
+                endpoint,
+                node,
+                updateInterval
             );
             var uaClient = new EasyUAClient();
 
@@ -599,8 +610,8 @@ namespace AlsSampleOpcClient
                         try
                         {
                             return uaClient.Read(
-                                uaConfig.Attribute("endpoint").Value,
-                                uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value
+                                endpoint,
+                                node
                             ).HasGoodStatus;
                         }
                         catch (Exception)
@@ -620,7 +631,7 @@ namespace AlsSampleOpcClient
                 else
                 {
                     IObservable<EasyUAMonitoredItemChangedEventArgs> ret = null;
-                    switch (tag.Attribute("type").Value)
+                    switch (type)
                     {
                         case "int":
                             ret = UAMonitoredItemChangedObservable.Create<int>(args);
