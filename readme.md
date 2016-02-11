@@ -9,44 +9,44 @@ In Kepware open up kepware config.xml and update the runtime project
 
 **Nb you need the Memory based driver and AllenBradley ethernet installed to load the config**
 
-In kepware OPC UA configuation make sure 127.0.0.1 endpoint uses port 49320 and no security policy (you can set it to need signing but then you must trust "AlsSampleOpcClient" in trusted clients..)
+In kepware OPC UA configuation make sure 127.0.0.1 endpoint uses port 49320 and no security policy (you can set it to need signing but then you must trust "sigopc" in trusted clients..)
 
-## AlsSampleOpcClient u
+## sigopc u
 
 Reads, writes subscribes using OPC-UA
 
-![AlsSampleOpcClient u](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/u.PNG "AlsSampleOpcClient u")
+![sigopc u](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/u.PNG "sigopc u")
 
-## AlsSampleOpcClient d
+## sigopc d
 
 Reads, writes subscribes using OPC-DA
 
-![AlsSampleOpcClient d](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/d.PNG "AlsSampleOpcClient d")
+![sigopc d](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/d.PNG "sigopc d")
 
-## AlsSampleOpcClient ux tags.xml
+## sigopc ux tags.xml
 
 Reads, writes subscribes a configured set of tags using OPC-UA and Reactive Extensions
 
-![AlsSampleOpcClient ux tags.xml](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/ux.PNG "AlsSampleOpcClient ux tags.xml")
+![sigopc ux tags.xml](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/ux.PNG "sigopc ux tags.xml")
 
-## AlsSampleOpcClient ulog tags.xml log.csv
+## sigopc ulog tags.xml log.csv
 
 Logs a configured set of tags using OPC-UA and Reactive Extensions
 
-![AlsSampleOpcClient ulog tags.xml log.csv](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/ulog.PNG "AlsSampleOpcClient ulog tags.xml log.csv")
+![sigopc ulog tags.xml log.csv](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/ulog.PNG "sigopc ulog tags.xml log.csv")
 
 
-## AlsSampleOpcClient dx tags.xml
+## sigopc dx tags.xml
 
 Reads, writes subscribes a configured set of tags using OPC-DA and Reactive Extensions
 
-![AlsSampleOpcClient dx](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/dx.PNG "AlsSampleOpcClient dx")
+![sigopc dx](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/dx.PNG "sigopc dx")
 
-## AlsSampleOpcClient uxsim
+## sigopc uxsim
 
 Simulation using OPC-UA (very basic)
 
-![AlsSampleOpcClient uxsim](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/uxsim.PNG "AlsSampleOpcClient uxsim")
+![sigopc uxsim](https://raw.githubusercontent.com/gilesbradshaw/OpcClient/master/uxsim.PNG "sigopc uxsim")
 
 
 

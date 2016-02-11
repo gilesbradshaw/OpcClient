@@ -7,8 +7,8 @@
     <ProjectGuid>{840F18E4-BCC8-4DE6-B936-0CBE4320E153}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AlsSampleOpcClient</RootNamespace>
-    <AssemblyName>AlsSampleOpcClient</AssemblyName>
+    <RootNamespace>SigOpc</RootNamespace>
+    <AssemblyName>SigOpc</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

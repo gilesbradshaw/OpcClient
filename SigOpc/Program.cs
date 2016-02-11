@@ -35,6 +35,15 @@ namespace AlsSampleOpcClient
             using (new ConsoleColourer(ConsoleColor.Magenta, ConsoleColor.Black))
                 Console.WriteLine(string.Format("READ: {0}", value));
         }
+        static string GetAttribute(XElement _this, string name)
+        {
+            if(_this != null)
+                return _this.Attribute(name) !=null
+                    ? _this.Attribute(name).Value 
+                    : GetAttribute(_this.Parent, name ) ;
+            else
+                return null;
+        }
 
         //displays a tag value at a position
         static void PosDisplay(XElement config, object value, bool quality)
@@ -358,8 +367,8 @@ namespace AlsSampleOpcClient
                         var args = new DAItemGroupArguments(
                             daConfig.Attribute("endpoint").Value,
                             daConfig.Attribute("server").Value,
-                            daConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value,
-                            int.Parse(tag.Attribute("updateInterval").Value), 
+                            string.Format("{0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
+                            int.Parse(GetAttribute(tag,"updateInterval")), 
                             tag.Attribute("id").Value);
                         switch (tag.Attribute("type").Value)
                         {
@@ -410,7 +419,7 @@ namespace AlsSampleOpcClient
                         var daConfig = tag.Parent.Element("da");
                         daClient.WriteItemValue(
                             new ServerDescriptor(daConfig.Attribute("endpoint").Value, daConfig.Attribute("server").Value),
-                            new DAItemDescriptor(daConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value),
+                            new DAItemDescriptor(string.Format("{0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value)),
                             vals[1]
                         );
                     }
@@ -461,8 +470,8 @@ namespace AlsSampleOpcClient
                     tag => UaObserver.UaObservable(
                         tag.Attribute("id").Value,
                         tag.Parent.Element("ua").Attribute("endpoint").Value,
-                        tag.Parent.Element("ua").Attribute("nodePrefix").Value + tag.Attribute("node").Value,
-                        int.Parse(tag.Attribute("updateInterval").Value),
+                        string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
+                        int.Parse(GetAttribute(tag, "updateInterval")),
                         tag.Attribute("type").Value
                     )
                         .Subscribe(
@@ -481,18 +490,20 @@ namespace AlsSampleOpcClient
                 {
                     var vals = key.Split(' ');
                     try {
-                        if (vals.Length != 2)
+                        lock (consoleLock)
                         {
-                            throw new Exception("enter id [space] val");
-                        } 
+                            new ConsolePositioner(0, 10, Console.BufferWidth * 2);
+                            Console.WindowTop = 0;
+                        }
+                        
                         var tag = myTags
                             .Single(t=>t.Attribute("id").Value==vals[0]);
                         var uaConfig = tag.Parent.Element("ua");
                         uaClient.WriteValue(
                             new UAWriteValueArguments(
                                uaConfig.Attribute("endpoint").Value,
-                               uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value,
-                                vals[1]
+                               string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
+                               new string(key.Skip(vals[0].Length+1).ToArray())
                             )
                         );
                         
@@ -500,12 +511,12 @@ namespace AlsSampleOpcClient
                     } catch (Exception ex)
                     {
                         lock(consoleLock)
-                            using( new ConsolePositioner(0, 21, Console.BufferWidth))
-                                Console.WriteLine(ex.GetType().Name);
+                            using( new ConsolePositioner(0, 11, Console.BufferWidth))
+                                using(new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
+                                    Console.WriteLine(ex.GetType().Name);
                     }
-                    new ConsolePositioner(0, 10, Console.BufferWidth);
-                    Console.WindowTop=0;
-                    }
+                    
+                }
                 key = Console.ReadLine();
             }
             Console.Clear();
@@ -540,8 +551,8 @@ namespace AlsSampleOpcClient
                     tag => UaObserver.UaObservable(
                         tag.Attribute("id").Value,
                         tag.Parent.Element("ua").Attribute("endpoint").Value,
-                        tag.Parent.Element("ua").Attribute("nodePrefix").Value + tag.Attribute("node").Value,
-                        int.Parse(tag.Attribute("updateInterval").Value),
+                        string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
+                        int.Parse(GetAttribute(tag, "updateInterval")),
                         tag.Attribute("type").Value
                     )
                         .Subscribe(
@@ -552,8 +563,8 @@ namespace AlsSampleOpcClient
                                     {
 
                                         var log = val.Succeeded
-                                             ? string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value, val.AttributeData.Value, val.AttributeData.HasGoodStatus, DateTime.Now.ToLongTimeString())
-                                             : string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, uaConfig.Attribute("nodePrefix").Value + tag.Attribute("node").Value, "", false, DateTime.Now.ToLongTimeString());
+                                             ? string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value), val.AttributeData.Value, val.AttributeData.HasGoodStatus, DateTime.Now.ToLongTimeString())
+                                             : string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value), "", false, DateTime.Now.ToLongTimeString());
                                         file.WriteLine(log);
                                         Console.WriteLine(log);
                                     }
