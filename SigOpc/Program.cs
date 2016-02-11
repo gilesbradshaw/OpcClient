@@ -56,7 +56,7 @@ namespace AlsSampleOpcClient
                     var line = int.Parse(config.Attribute("line").Value);
                     var startCol = int.Parse(config.Attribute("col").Value) * 40;
 
-                    using (new ConsolePositioner(startCol + 15, line, 10))
+                    using (new ConsolePositioner(startCol + 25, line, 10))
                     {
                         Console.Write(value);
                     }
@@ -378,6 +378,9 @@ namespace AlsSampleOpcClient
                             case "bool":
                                 ret = DAItemChangedObservable.Create<bool>(args);
                                 break;
+                            case "byte":
+                                ret = DAItemChangedObservable.Create<byte>(args);
+                                break;
                             case "double":
                                 ret = DAItemChangedObservable.Create<double>(args);
                                 break;
@@ -643,9 +646,11 @@ namespace AlsSampleOpcClient
             {
                 case "int":
                     return UAMonitoredItemChangedObservable.Create<int>(args);
-                           
+
                 case "bool":
                     return UAMonitoredItemChangedObservable.Create<bool>(args);
+                case "byte":
+                    return UAMonitoredItemChangedObservable.Create<byte>(args);
                 case "double":
                     return UAMonitoredItemChangedObservable.Create<double>(args);
                 case "float":

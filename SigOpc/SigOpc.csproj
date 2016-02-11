@@ -85,6 +85,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="dms.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="tags.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
