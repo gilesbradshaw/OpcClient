@@ -14,8 +14,9 @@ using System.Threading.Tasks;
 using System.Reactive.Linq;
 using System.Xml.Linq;
 using System.IO;
-
-namespace AlsSampleOpcClient
+using static System.Console;
+using static System.ConsoleColor;
+namespace SigOpc
 {
     class Program
     {
@@ -25,15 +26,15 @@ namespace AlsSampleOpcClient
         //writing a value
         static void Writing(object value)
         {
-            using(new ConsoleColourer(ConsoleColor.Green, ConsoleColor.Black))
-                Console.WriteLine(string.Format("writing {0}", value));
+            using(new ConsoleColourer(Green, Black))
+                WriteLine($"writing {value}");
         }
 
         //Read a value
         static void Read(object value)
         {
-            using (new ConsoleColourer(ConsoleColor.Magenta, ConsoleColor.Black))
-                Console.WriteLine(string.Format("READ: {0}", value));
+            using (new ConsoleColourer(Magenta, Black))
+                WriteLine($"READ: {value}");
         }
         static string GetAttribute(XElement _this, string name)
         {
@@ -46,70 +47,117 @@ namespace AlsSampleOpcClient
         }
 
         //displays a tag value at a position
-        static void PosDisplay(XElement config, object value, bool quality)
+        static void PosDisplay(string id, int line, int column, XElement config, object value, bool quality)
         {
+            if(!quality)
+            {
+                System.Diagnostics.Debug.WriteLine("bad");
+            }
             lock (consoleLock)
             {
-                using (new ConsoleColourer(quality ? ConsoleColor.Green : ConsoleColor.Yellow, ConsoleColor.Black))
+                using (new ConsoleColourer(quality ? Green : Yellow, Black))
                 {
-                    TitleDisplay(config);
-                    var line = int.Parse(config.Attribute("line").Value);
-                    var startCol = int.Parse(config.Attribute("col").Value) * 40;
-
-                    using (new ConsolePositioner(startCol + 25, line, 10))
-                    {
-                        Console.Write(value);
-                    }
+                    IdDisplay(id, line, column);
                 }
+                var startCol = column * 80;
+
+                using (new ConsolePositioner(startCol + 65, line + 5, 10))
+                {
+                    Write(value);
+                }
+                
             }
         }
 
         //displays a tag title
-        static XElement TitleDisplay(XElement config)
+        static void IdDisplay(string id, int line, int column)
         {
+
             lock (consoleLock)
             {
-                var line = int.Parse(config.Attribute("line").Value);
-                var startCol = int.Parse(config.Attribute("col").Value) * 40;
+                var startCol = column * 80;
 
-                using (new ConsolePositioner( startCol, line, 40))
+                using (new ConsolePositioner(startCol, line + 5, 0))
                 {
-                    Console.Write(config.Attribute("id").Value);
-                    Console.SetCursorPosition(startCol + 5, line);
-                    Console.Write(config.Attribute("name").Value);
+                    Write(id);
+                    
+                }
+
+            }
+        }
+
+
+
+        //displays a tag title
+        static XElement TitleDisplay(int line, int column, XElement config)
+        {
+            
+            lock (consoleLock)
+            {
+                var startCol = column * 80;
+
+                using (new ConsolePositioner( startCol + 5, line + 5, 0))
+                {
+                    Write(config.Attribute("name").Value);
                 }
                 
                 return config;
             }
         }
 
-        //displays a tag exception
-        static void ExceptionDisplay(XElement config, Exception ex)
+        //displays a tag title
+        static XElement TagsDisplay(int line, int column, XElement config)
         {
 
             lock (consoleLock)
             {
-                using (new ConsoleColourer(ConsoleColor.Red, ConsoleColor.Black))
+                var startCol = column * 80;
+
+                using (new ConsolePositioner(startCol, line + 5, 0))
                 {
-                    TitleDisplay(config);
+                    Write(config.Attribute("name").Value);
+                }
 
-                    var line = int.Parse(config.Attribute("line").Value);
-                    var startCol = int.Parse(config.Attribute("col").Value) * 40;
+                return config;
+            }
+        }
 
-                    using (new ConsolePositioner(startCol + 15, line, 24))
+
+
+        //displays a tag exception
+        static void ExceptionDisplay(string id, int line, int column, XElement config, Exception ex)
+        {
+
+            lock (consoleLock)
+            {
+                using (new ConsoleColourer(Red, Black))
+                {
+                    var startCol = column * 80;
+
+                    using (new ConsolePositioner(startCol + 15, line + 5, 24))
                     {
-                        Console.Write(ex.GetType().Name);
+                        Write(ex.GetType().Name);
                     }
                 }
             }
         }
 
 
-        
+
         static void Main(string[] args)
         {
-           Console.BackgroundColor = ConsoleColor.Black;
-           Console.ForegroundColor = ConsoleColor.Gray;
+            ConsoleColor fore = ForegroundColor, back = BackgroundColor;
+            CancelKeyPress += (s, e) =>
+            {
+                ForegroundColor = fore; BackgroundColor = back;
+                Clear();
+            };
+            MainAsync(args).Wait();
+        }
+        static async Task MainAsync(string[] args) { 
+
+           BackgroundColor = Black;
+           ForegroundColor = Gray;
 
            //pick an option based on command line
            try {
@@ -121,10 +169,10 @@ namespace AlsSampleOpcClient
                             Ua();
                             break;
                         case "ux":
-                            UaRx(args[1]);
+                            await UaRx(args[1]);
                             break;
                         case "dx":
-                            DaRx(args[1]);
+                            await DaRx(args[1]);
                             break;
                         case "uxsim":
                             UaRxSim();
@@ -138,8 +186,8 @@ namespace AlsSampleOpcClient
                 }
                 catch (Exception ex)
                 {
-                    using (new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
-                        Console.WriteLine(string.Format("Exception: {0}", ex.Message));
+                    using (new ConsoleColourer(Black, Yellow))
+                        WriteLine($"Exception: {ex.Message}");
                     
                 }
 
@@ -152,19 +200,20 @@ namespace AlsSampleOpcClient
         // simple ua client with hard coded config
         static void Ua()
         {
-            Console.Clear();
-            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
-                Console.WriteLine("UA! Enter any number to write a value return to exit");
+            Clear();
+            
+            using (new ConsoleColourer(Yellow, Black))
+                WriteLine("UA! Enter any number to write a value return to exit");
 
-            new ConsolePositioner(0, 9, Console.BufferWidth);
+            new ConsolePositioner(0, 9, BufferWidth);
             var uaClient = new EasyUAClient();
 
             uaClient.MonitoredItemChanged += (sender, val) =>
                 {
                     lock (consoleLock)
-                        using (new ConsolePositioner(0, 6, Console.BufferWidth*2))
-                            using (new ConsoleColourer(val.Succeeded ? ConsoleColor.Gray : ConsoleColor.Yellow, ConsoleColor.Black))
-                                Console.WriteLine(
+                        using (new ConsolePositioner(0, 6, BufferWidth*2))
+                            using (new ConsoleColourer(val.Succeeded ? Gray : Yellow, Black))
+                                WriteLine(
                                       string.Format("ua observed {0} {1} {2}",
                                           val.Arguments.State,
                                           val.Succeeded ? val.AttributeData.StatusCode.ToString() : val.ErrorMessageBrief,
@@ -179,7 +228,7 @@ namespace AlsSampleOpcClient
            var uASubscribeArguments = new EasyUAMonitoredItemArguments(
                  "uaState",
                  "opc.tcp://127.0.0.1:49320/",
-                 "ns=2;s=Channel1.Device1.Tag1",
+                 "ns=2;s=Zone16.HSH.Finished",
                  1000);
 
            uaClient.SubscribeMonitoredItem(uASubscribeArguments);
@@ -188,9 +237,9 @@ namespace AlsSampleOpcClient
                 .Subscribe(val =>
                     {
                         lock (consoleLock)
-                            using (new ConsolePositioner(0, 4, Console.BufferWidth * 2))
-                                using (new ConsoleColourer(val.Succeeded ? ConsoleColor.Gray : ConsoleColor.Yellow, ConsoleColor.Black))
-                                   Console.WriteLine(
+                            using (new ConsolePositioner(0, 4, BufferWidth * 2))
+                                using (new ConsoleColourer(val.Succeeded ? Gray : Yellow, Black))
+                                   WriteLine(
                                          string.Format("Rx ua observed {0} {1} {2}",
                                              val.Arguments.State,
                                              val.Succeeded ? val.AttributeData.StatusCode.ToString() : val.ErrorMessageBrief,
@@ -207,36 +256,36 @@ namespace AlsSampleOpcClient
             {
                 UAAttributeData attributeData = uaClient.Read(
                 "opc.tcp://127.0.0.1:49320/",
-                "ns=2;s=Channel1.Device1.Tag1");
+                "ns=2;s=Zone16.HSH.Finished");
 
                 lock (consoleLock)
-                    using (new ConsolePositioner(0, 3, Console.BufferWidth))
+                    using (new ConsolePositioner(0, 3, BufferWidth))
                         Read(attributeData.DisplayValue());
 
             }
             catch (Exception ex)
             {
                 lock (consoleLock)
-                    using (new ConsolePositioner(0, 3, Console.BufferWidth))
-                        using(new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
-                            Console.Write(string.Format("No read: {0}", ex.GetType().Name));
+                    using (new ConsolePositioner(0, 3, BufferWidth))
+                        using(new ConsoleColourer(Black, Yellow))
+                            Write($"No read: {ex.GetType().Name}");
             }
             
             lock(consoleLock)
-                new ConsolePositioner(0, 9, Console.BufferWidth);
+                new ConsolePositioner(0, 9, BufferWidth);
 
-            var key = Console.ReadLine();
+            var key = ReadLine();
             
             while (key!="")
             {
                 lock (consoleLock)
-                    using (new ConsolePositioner(0, 8, Console.BufferWidth * 5))
+                    using (new ConsolePositioner(0, 8, BufferWidth * 5))
                         Writing(key);
                 try {
                     uaClient.WriteValue(
                         new UAWriteValueArguments(
                             "opc.tcp://127.0.0.1:49320/",
-                           "ns=2;s=Channel1.Device1.Tag1",
+                           "ns=2;s=Zone16.HSH.Finished",
                             key
                         )
                     );
@@ -244,13 +293,13 @@ namespace AlsSampleOpcClient
                 catch (Exception ex)
                 {
                     lock (consoleLock)
-                        using (new ConsolePositioner(0, 10, Console.BufferWidth * 3))
-                            using(new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
-                                Console.Write(ex.Message);
+                        using (new ConsolePositioner(0, 10, BufferWidth * 3))
+                            using(new ConsoleColourer(Black, Yellow))
+                                Write(ex.Message);
                 }
                 lock (consoleLock)
-                    new ConsolePositioner(0, 9, Console.BufferWidth);
-                key = Console.ReadLine();
+                    new ConsolePositioner(0, 9, BufferWidth);
+                key = ReadLine();
             }
             rxUaSubscription.Dispose();
             uaClient.UnsubscribeAllMonitoredItems();
@@ -260,20 +309,16 @@ namespace AlsSampleOpcClient
         // simple da client with hard coded config
         static void Da()
         {
-            Console.Clear();
-            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
-                Console.WriteLine("DA! Enter any number to write a value or return to exit");
+            Clear();
+            using (new ConsoleColourer(Yellow, Black))
+                WriteLine("DA! Enter any number to write a value or return to exit");
             var daClient = new OpcLabs.EasyOpc.DataAccess.EasyDAClient();
 
             daClient.ItemChanged += (sender, e) => {
                 lock (consoleLock)
-                    using (new ConsolePositioner(0, 2, Console.BufferWidth))
+                    using (new ConsolePositioner(0, 2, BufferWidth))
                     {
-                        Console.WriteLine(string.Format("da {0} {1} {2}",
-                            e.Arguments.State,
-                            e.Vtq.Quality,
-                            e.Vtq.Value)
-                        );
+                        WriteLine($"da {e.Arguments.State} {e.Vtq.Quality} {e.Vtq.Value}");
                     }
             };
                 
@@ -281,8 +326,8 @@ namespace AlsSampleOpcClient
             daClient.SubscribeItem(
                 "localhost",
                 "Kepware.KEPServerEX.V5",
-                "Channel1.Device1.Tag1",
-                VarTypes.Int,
+                "Zone16.HSH.Finished",
+                VarTypes.Bool,
                 1000,
                 "daState"
             );
@@ -290,13 +335,13 @@ namespace AlsSampleOpcClient
             var rxDaSubscription = DAItemChangedObservable.Create<int>(
                 "localhost",
                 "Kepware.KEPServerEX.V5",
-                "Channel1.Device1.Tag1",
+                "Zone16.HSH.Finished",
                 1000).Subscribe(val => 
                     {
                         lock (consoleLock)
-                            using (new ConsolePositioner(0, 3, Console.BufferWidth))
+                            using (new ConsolePositioner(0, 3, BufferWidth))
                             {
-                                Console.Write(string.Format("Rx da observed {0} {1}", val.Vtq.DisplayValue(), val.Vtq.Quality));
+                                Write($"Rx da observed {val.Vtq.DisplayValue()} {val.Vtq.Quality}");
                             }
                      }
                 );
@@ -304,35 +349,35 @@ namespace AlsSampleOpcClient
 
             var item = daClient.ReadItem(
                 new ServerDescriptor("localhost", "Kepware.KEPServerEX.V5"),
-                new DAItemDescriptor("Channel1.Device1.Tag1")
+                new DAItemDescriptor("Zone16.HSH.Finished")
             );
             lock(consoleLock)
-                using (new ConsolePositioner(0,1, Console.BufferWidth))
+                using (new ConsolePositioner(0,1, BufferWidth))
                 {
                     Read(item.DisplayValue());
                 }
 
 
-            new ConsolePositioner(0, 7, Console.BufferWidth);
-            var key = Console.ReadLine();
+            new ConsolePositioner(0, 7, BufferWidth);
+            var key = ReadLine();
 
             while (key !="")
             {
                 lock(consoleLock)
-                    using (new ConsolePositioner(0, 6, Console.BufferWidth))
+                    using (new ConsolePositioner(0, 6, BufferWidth))
                     {
                         Writing(key);
                     }
-                Console.SetCursorPosition(0, 7);
-                Console.Write(new string(' ', Console.BufferWidth));
-                Console.SetCursorPosition(0, 7);
+                SetCursorPosition(0, 7);
+                Write(new string(' ', BufferWidth));
+                SetCursorPosition(0, 7);
                 daClient.WriteItemValue(
                     new ServerDescriptor("localhost", "Kepware.KEPServerEX.V5"),
-                    new DAItemDescriptor("Channel1.Device1.Tag1"),
+                    new DAItemDescriptor("Zone16.HSH.Finished"),
                     key
                 );
-                new ConsolePositioner(0, 7, Console.BufferWidth);
-                key = Console.ReadLine();
+                new ConsolePositioner(0, 7, BufferWidth);
+                key = ReadLine();
             }
 
             rxDaSubscription.Dispose();
@@ -342,67 +387,143 @@ namespace AlsSampleOpcClient
         }
 
         // configured da client using rx
-        static void DaRx(string fileName)
+        static async Task DaRx(string group)
         {
 
-            Console.Clear();
-            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
-                Console.WriteLine("reactive DA! Enter id <space> value to write a value,  Return to quit");
-            
-
-            var daClient = new EasyDAClient();
-
-            new ConsolePositioner(0, 10, Console.BufferWidth);
-
-            var config = XDocument.Load(fileName);
-            var subs = config.Root
-                .Elements("tags")
-                .SelectMany(tags => tags.Elements("tag"))
-                .Select(tag => TitleDisplay(tag))
-                .Select(
-                    tag =>
+            await Rx(group,
+                (tag) => (value) =>
+                {
+                    
+                    using (var client = new EasyDAClient())
                     {
-                        var daConfig = tag.Parent.Element("da");
-                        IObservable<EasyDAItemChangedEventArgs> ret = null;
-                        var args = new DAItemGroupArguments(
-                            daConfig.Attribute("endpoint").Value,
-                            daConfig.Attribute("server").Value,
-                            string.Format("{0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
-                            int.Parse(GetAttribute(tag,"updateInterval")), 
-                            tag.Attribute("id").Value);
-                        switch (tag.Attribute("type").Value)
-                        {
-                            case "int":
-                                ret = DAItemChangedObservable.Create<int>(args);
-                                break;
-                            case "bool":
-                                ret = DAItemChangedObservable.Create<bool>(args);
-                                break;
-                            case "byte":
-                                ret = DAItemChangedObservable.Create<byte>(args);
-                                break;
-                            case "double":
-                                ret = DAItemChangedObservable.Create<double>(args);
-                                break;
-                            case "float":
-                                ret = DAItemChangedObservable.Create<float>(args);
-                                break;
-                            default:
-                                ret = DAItemChangedObservable.Create<string>(args);
-                                break;
-                        }
 
-                        return ret
-                            .Subscribe(
-                                val => PosDisplay(tag, val.Vtq.Value, val.Vtq.Quality.ToString().StartsWith("Good")),
-                                (ex) => ExceptionDisplay(tag, ex),
-                                () => { }
-                            );
+                        //client.InstanceParameters.UpdateRates.ReadAutomatic = int.Parse(GetAttribute(tag, "updateRate"));
+                        //client.InstanceParameters.UpdateRates.WriteAutomatic = int.Parse(GetAttribute(tag, "updateRate"));
+
+                        client.WriteItemValue(
+                            tag.Parent.Element("da").Attribute("endpoint").Value,
+                            tag.Parent.Element("da").Attribute("server").Value,
+                            $"{tag.Parent.Attribute("name").Value}.{tag.Attribute("node").Value}",
+                             value 
+                        );
+                    }
+        
+                }, 
+                (id, tag) => DAItemChangedObservable.Create<object>(new DAItemGroupArguments(
+                    tag.Parent.Element("da").Attribute("endpoint").Value,
+                    tag.Parent.Element("da").Attribute("server").Value,
+                    $"{tag.Parent.Attribute("name").Value}.{tag.Attribute("node").Value}",
+                    int.Parse(GetAttribute(tag, "updateRate")),
+                    id)
+                 )
+                    .Select(val => new SubValue { Quality = val.Vtq.HasValue ? val.Vtq.Quality== DAQualities.GoodNonspecific : false  , Value = val?.Vtq?.Value })
+             );
+        
+            
+        }
+
+
+
+        // configured ua client using rx
+        static async Task UaRx(string group)
+        {
+            await Rx(group,
+                (tag) => (value) =>
+                {
+                    using (var uaClient = new EasyUAClient())
+                    {
+                        uaClient.Isolated = true;
+
+                        var uaConfig = tag.Parent.Element("ua");
+                        uaClient.WriteValue(
+                            new UAWriteValueArguments(
+                               uaConfig.Attribute("endpoint").Value,
+                               $"ns=2;s={tag.Parent.Attribute("name").Value}.{ tag.Attribute("node").Value}",
+                               value
+                            )
+                        );
+                    }
+                        
+                    
+                }, (id, tag) => 
+                    UaObserver.UaObservable(
+                        id,
+                        tag.Parent.Element("ua").Attribute("endpoint").Value,
+                        $"ns=2;s={tag.Parent.Attribute("name").Value}.{tag.Attribute("node").Value}",
+                        int.Parse(GetAttribute(tag, "updateRate")),
+                        tag.Attribute("type").Value
+                    ).Select(val=> new SubValue {  Quality = val.Succeeded, Value = val?.AttributeData?.Value })
+                );
+        }
+
+        class SubValue
+        {
+            public object Value { get; set; }
+            public bool Quality { get; set; }
+        }
+
+        // configured ua client using rx
+        static async Task Rx(string group, Func<XElement, Action<object>> write, Func<string, XElement, IObservable<SubValue>> subscriber)
+        {
+            Clear();
+            using (new ConsoleColourer(White, Black))
+                Write($"{group} ");
+            using (new ConsoleColourer(Yellow, Black))
+                WriteLine("Enter id <space> value to write a value,  Return to quit");
+
+
+            
+            new ConsolePositioner(0, 1, BufferWidth);
+            Write("> ");
+
+            var config = XDocument.Load("dms.xml");
+
+            var cols = config.Root.Elements("group").Single(e=>e.Attribute("name").Value== group)
+                .Elements("col").Select((XElement col, int index)=> new { col, index }).ToList();
+
+            using (new ConsoleColourer(Cyan, Black))
+                cols.ForEach(c => TagsDisplay(-1, c.index, c.col));
+
+
+            var subs = cols.SelectMany(c =>
+            {
+                var tagconfig = c.col
+                    .Elements("tags")
+                    .SelectMany(tags => tags.Elements("tag").Select((XElement tag, int index)=> Tuple.Create( tag, index )));
+                var tagConfigs = tagconfig.Select((Tuple<XElement, int> tag, int index) =>
+                new { tag = tag.Item1, id = $"{c.index}.{index}", index = tag.Item2,  line = index + tag.Item1.Parent.Parent.Elements("tags").ToList().IndexOf(tag.Item1.Parent) + 1 }).ToList();
+
+                tagConfigs.ForEach(t => TitleDisplay(t.line, c.index, t.tag));
+                using(new ConsoleColourer(White, Black))
+                    tagConfigs.Where(t=>t.index==0).ToList().ForEach(t => TagsDisplay(t.line-1, c.index, t.tag.Parent));
+
+
+                return tagConfigs.Select(
+                    (t, index) => {
+                        return new
+                        {
+                            Id = t.id,
+                            Writer = write(t.tag),
+                            Subscription = subscriber(t.id, t.tag)
+                                .DistinctUntilChanged(v => $"{v.Quality}:{v.Value}")
+                                .Subscribe(
+                                    val => PosDisplay(t.id, t.line, c.index, t.tag, val.Value,val.Quality),
+                                    (ex) => ExceptionDisplay(t.id, t.line, c.index, t.tag, ex),
+                                    () => { }
+                                )
+                        };
                     }
                 ).ToList();
+            }
 
-            
-            var key = Console.ReadLine();
+            ).ToList(); ;
+
+            var myTags = config.Root
+                .Elements("col")
+                .SelectMany(col => col.Elements("tags"))
+                .SelectMany(tags => tags.Elements("tag"));
+
+            var key = await In.ReadLineAsync();
 
             while (key != "")
             {
@@ -411,121 +532,32 @@ namespace AlsSampleOpcClient
                     var vals = key.Split(' ');
                     try
                     {
-                        if (vals.Length != 2)
+                        lock (consoleLock)
                         {
-                            throw new Exception("enter id [space] val");
+                            new ConsolePositioner(0, 1, BufferWidth * 2);
+                            Write("> ");
+                            //WindowTop = 0;
                         }
-                        var tag = config.Root
-                            .Elements("tags")
-                            .SelectMany(tags => tags.Elements("tag"))
-                            .Single(t => t.Attribute("id").Value == vals[0]);
-                        var daConfig = tag.Parent.Element("da");
-                        daClient.WriteItemValue(
-                            new ServerDescriptor(daConfig.Attribute("endpoint").Value, daConfig.Attribute("server").Value),
-                            new DAItemDescriptor(string.Format("{0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value)),
-                            vals[1]
-                        );
+
+                        subs.Single(s => s.Id == vals[0]).Writer(new string(key.Skip(vals[0].Length + 1).ToArray()));
+
                     }
                     catch (Exception ex)
                     {
                         lock (consoleLock)
-                            using (new ConsolePositioner(0, 21, Console.BufferWidth))
-                                Console.WriteLine(ex.GetType().Name);
+                            using (new ConsolePositioner(0, 2, BufferWidth))
+                            using (new ConsoleColourer(Black, Yellow))
+                                WriteLine(ex.GetType().Name);
                     }
-                    Console.WindowTop = 0;
+
                 }
-                new ConsolePositioner(0, 10, Console.BufferWidth);
-                key = Console.ReadLine();
+                key = await In.ReadLineAsync();
             }
-            Console.Clear();
-            subs.ForEach(s => s.Dispose());
-            daClient.Dispose();
+            Clear();
+            subs.ForEach(s => s.Subscription.Dispose());
+            
         }
 
-
-
-        // configured ua client using rx
-        static void UaRx(string fileName)
-        {
-            
-            Console.Clear();
-            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
-                Console.WriteLine("reactive UA! Enter id <space> value to write a value,  Return to quit");
-            
-
-            var uaClient = new EasyUAClient();
-
-            new ConsolePositioner(0, 10, Console.BufferWidth);
-
-            var config = XDocument.Load(fileName);
-
-            var myTags = config.Root
-                .Elements("tags")
-                .SelectMany(tags=> tags.Elements("tag"));
-
-
-            myTags
-                .ToList()
-                .ForEach(tag=>TitleDisplay(tag));
-
-            var subs = myTags
-                .Select(
-                    tag => UaObserver.UaObservable(
-                        tag.Attribute("id").Value,
-                        tag.Parent.Element("ua").Attribute("endpoint").Value,
-                        string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
-                        int.Parse(GetAttribute(tag, "updateInterval")),
-                        tag.Attribute("type").Value
-                    )
-                        .Subscribe(
-                            val => PosDisplay(tag,val.Succeeded ? val.AttributeData.Value : "", val.Succeeded ? val.AttributeData.HasGoodStatus: false),
-                            (ex) => ExceptionDisplay(tag, ex), 
-                            ()=>{}
-                        )
-                ).ToList();
-
-            
-            var key = Console.ReadLine();
-
-            while (key!="")
-            {
-                lock (consoleLock)
-                {
-                    var vals = key.Split(' ');
-                    try {
-                        lock (consoleLock)
-                        {
-                            new ConsolePositioner(0, 10, Console.BufferWidth * 2);
-                            Console.WindowTop = 0;
-                        }
-                        
-                        var tag = myTags
-                            .Single(t=>t.Attribute("id").Value==vals[0]);
-                        var uaConfig = tag.Parent.Element("ua");
-                        uaClient.WriteValue(
-                            new UAWriteValueArguments(
-                               uaConfig.Attribute("endpoint").Value,
-                               string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
-                               new string(key.Skip(vals[0].Length+1).ToArray())
-                            )
-                        );
-                        
-                    
-                    } catch (Exception ex)
-                    {
-                        lock(consoleLock)
-                            using( new ConsolePositioner(0, 11, Console.BufferWidth))
-                                using(new ConsoleColourer(ConsoleColor.Black, ConsoleColor.Yellow))
-                                    Console.WriteLine(ex.GetType().Name);
-                    }
-                    
-                }
-                key = Console.ReadLine();
-            }
-            Console.Clear();
-            subs.ForEach(s=>s.Dispose());
-            uaClient.Dispose();
-        }
 
         // configured ua logging client using rx
         static void UaLog(string fileName, string logFileName)
@@ -554,7 +586,7 @@ namespace AlsSampleOpcClient
                     tag => UaObserver.UaObservable(
                         tag.Attribute("id").Value,
                         tag.Parent.Element("ua").Attribute("endpoint").Value,
-                        string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value),
+                        $"ns=2;s={tag.Parent.Attribute("name").Value}.{tag.Attribute("node").Value}",
                         int.Parse(GetAttribute(tag, "updateInterval")),
                         tag.Attribute("type").Value
                     )
@@ -569,18 +601,18 @@ namespace AlsSampleOpcClient
                                              ? string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value), val.AttributeData.Value, val.AttributeData.HasGoodStatus, DateTime.Now.ToLongTimeString())
                                              : string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}", tag.Attribute("id").Value, uaConfig.Attribute("endpoint").Value, tag.Attribute("name").Value, string.Format("ns=2;s={0}.{1}", tag.Parent.Attribute("name").Value, tag.Attribute("node").Value), "", false, DateTime.Now.ToLongTimeString());
                                         file.WriteLine(log);
-                                        Console.WriteLine(log);
+                                        WriteLine(log);
                                     }
 
                                 
                             }, 
-                            (ex) => ExceptionDisplay(tag, ex),
+                            //(ex) => ExceptionDisplay(tag, ex),
                             () => { }
                         )
                 ).ToList();
 
 
-            var key = Console.ReadLine();
+            var key = ReadLine();
             subs.ForEach(s => s.Dispose());
 
         }
@@ -591,9 +623,9 @@ namespace AlsSampleOpcClient
         static void UaRxSim()
         {
 
-            Console.Clear();
-            using (new ConsoleColourer(ConsoleColor.Yellow, ConsoleColor.Black))
-                Console.WriteLine("reactive UA simulation! Press a key to quit.");
+            Clear();
+            using (new ConsoleColourer(Yellow, Black))
+                WriteLine("reactive UA simulation! Press a key to quit.");
             
 
             var uaClient = new EasyUAClient();
@@ -606,7 +638,7 @@ namespace AlsSampleOpcClient
              )
              .Subscribe(val =>
              {
-                 Console.WriteLine(string.Format("wrote {0} to {1} on {2} being {3}", val.AttributeData.Value, "ns=2;s=Channel1.Device1.Tag1", "ns=2;s=Channel1.Device1.Tag2", val.AttributeData.Value));
+                 WriteLine(string.Format("wrote {0} to {1} on {2} being {3}", val.AttributeData.Value, "ns=2;s=Channel1.Device1.Tag1", "ns=2;s=Channel1.Device1.Tag2", val.AttributeData.Value));
                  uaClient.WriteValue(
                      new UAWriteValueArguments(
                          "opc.tcp://127.0.0.1:49320/",
@@ -618,7 +650,7 @@ namespace AlsSampleOpcClient
              }
          );
 
-            var key = Console.ReadKey();
+            var key = ReadKey();
 
             rxUaSubscription.Dispose();
             uaClient.Dispose();
@@ -640,24 +672,9 @@ namespace AlsSampleOpcClient
                 node,
                 updateInterval
             );
+
+            return UAMonitoredItemChangedObservable.Create<object>(args);
             
-
-            switch (type)
-            {
-                case "int":
-                    return UAMonitoredItemChangedObservable.Create<int>(args);
-
-                case "bool":
-                    return UAMonitoredItemChangedObservable.Create<bool>(args);
-                case "byte":
-                    return UAMonitoredItemChangedObservable.Create<byte>(args);
-                case "double":
-                    return UAMonitoredItemChangedObservable.Create<double>(args);
-                case "float":
-                    return UAMonitoredItemChangedObservable.Create<Single>(args);
-                default:
-                    return UAMonitoredItemChangedObservable.Create<string>(args);
-            }
         }
     } 
 
@@ -666,16 +683,17 @@ namespace AlsSampleOpcClient
         int _top, _left;
         public ConsolePositioner(int left, int top, int blank)
         {
-            _top= Console.CursorTop;
-            _left = Console.CursorLeft;
-            Console.SetCursorPosition(left,top);
-            Console.Write(new string(' ', blank));
-            Console.SetCursorPosition(left, top);
+            _top= CursorTop;
+            _left = CursorLeft;
+            SetCursorPosition(left,top);
+            Write(new string(' ', blank));
+            SetCursorPosition(left, top);
+            //SetWindowPosition(0, 0);
         }
 
         public void Dispose()
         {
-            Console.SetCursorPosition(_left, _top);
+            SetCursorPosition(_left, _top);
         }
     }
 
@@ -686,16 +704,16 @@ namespace AlsSampleOpcClient
         ConsoleColor _foreGround, _backGround;
         public ConsoleColourer( ConsoleColor foreground, ConsoleColor backGround)
         {
-            _foreGround = Console.ForegroundColor;
-            _backGround = Console.BackgroundColor;
-            Console.ForegroundColor= foreground;
-            Console.BackgroundColor = backGround;
+            _foreGround = ForegroundColor;
+            _backGround = BackgroundColor;
+            ForegroundColor= foreground;
+            BackgroundColor = backGround;
         }
 
         public void Dispose()
         {
-            Console.ForegroundColor= _foreGround;
-            Console.BackgroundColor = _backGround;
+            ForegroundColor= _foreGround;
+            BackgroundColor = _backGround;
         }
     }
 }
