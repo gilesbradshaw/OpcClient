@@ -1,0 +1,117 @@
+;Tag Type, Tag Name, Tag Description, Read Only, Data Source, Security Code, Alarmed, Data Logged, Native Type, Value Type, Min Analog, Max Analog, Initial Analog, Scale, Offset, DeadBand, Units, Off Label Digital, On Label Digital, Initial Digital, Length String, Initial String, Node Name, Address, Scan Class,  System Source Name, System Source Index, RIO Address, Element Size Block, Number Elements Block, Initial Block
+;###001 - THIS LINE CONTAINS VERSION INFORMATION. DO NOT REMOVE!!!
+
+;Folders Section (Must define folders before tags)
+"F","DKSystem","","F"
+"F","dkSystem\chart","","F"
+"F","H","","F"
+"F","H\A","","F"
+"F","H\AA","","F"
+"F","H\C","","F"
+"F","H\C1","","F"
+"F","H\C1\C","","F"
+"F","H\C1\S","","F"
+"F","H\S","","F"
+"F","S1","","F"
+"F","S1\C","","F"
+"F","S1\S","","F"
+"F","S2","","F"
+"F","S2\C","","F"
+"F","S2\S","","F"
+"F","S3","","F"
+"F","S3\C","","F"
+"F","S3\S","","F"
+"F","simulationtags","","F"
+
+;Tag Section
+"A","dkSystem\chart\CurrentFile","Current datalog file displayed by trend.","F","M","*","F","F","I","L",-10000,10000,0,1,0,0,"",,,,,,,,,,,,,,
+"A","dkSystem\chart\CurrentPen","Current trend pen selected.","F","M","*","F","F","I","L",0,16,0,1,0,0,"",,,,,,,,,,,,,,
+"A","dkSystem\chart\NewestFile","Offset to the newest data log file.","F","M","*","F","F","I","L",-10000,10000,0,1,0,0,"",,,,,,,,,,,,,,
+"A","dkSystem\chart\NewestTime","Time of newest data available to trend","F","M","*","F","F","L","L",-2147483647,2147483647,0,1,0,0,"",,,,,,,,,,,,,,
+"A","dkSystem\chart\OldestFile","Offset to the oldest data log file.","F","M","*","F","F","I","L",-10000,10000,0,1,0,0,"",,,,,,,,,,,,,,
+"A","dkSystem\chart\OldestTime","Time of oldest data available to trend.","F","M","*","F","F","L","L",-2147483647,2147483647,0,1,0,0,"",,,,,,,,,,,,,,
+"D","dkSystem\chart\Paused","Pause trend display at current time","F","M","*","F","F",,,,,,,,,,"Resumed","Paused","Resumed",,,,,,,,,,,
+"A","dkSystem\chart\PenMask","Enable/disable display of trend pens","F","M","*","F","F","L","L",-2147483647,2147483647,0,1,0,0,"",,,,,,,,,,,,,,
+"A","dkSystem\chart\StartTime","Current start time of the trend.","F","M","*","F","F","L","L",-2147483647,2147483647,0,1,0,0,"",,,,,,,,,,,,,,
+"S","dkSystem\chart\StartTimeDate","Start Date","F","M","*","F","F",,,,,,,,,,,,,82,"",,,,,,,,,
+"A","dkSystem\chart\TimeRange","Time range in seconds of trend display","F","M","*","F","F","L","L",1,2147483647,60,1,0,0,"",,,,,,,,,,,,,,
+"D","dkSystem\chart\Updating","Is datamodel in the process of updating","F","M","*","F","F",,,,,,,,,,"Finished Updating","Updating","Finished Updating",,,,,,,,,,,
+"A","dkSystem\chart\YMag","Magnification of trend Y axis.","F","M","*","F","F","F","F",-10000,10000,0,1,0,0,"",,,,,,,,,,,,,,
+"A","dkSystem\chart\YOffset","Offset of trend Y axis.","F","M","*","F","F","F","F",-10000,10000,0,1,0,0,"",,,,,,,,,,,,,,
+"D","DKSystem\CommsEnabled","Comms enabled","F","M","*","F","F",,,,,,,,,,"Off","On","On",,,,,,,,,,,
+"D","DKSystem\DataLogRunning","Data log runnijng","F","M","*","F","F",,,,,,,,,,"Off","On","Off",,,,,,,,,,,
+"S","DKSystem\Projectname","Project name and version","F","M","*","F","F",,,,,,,,,,,,,255,"Cramlington Z16 V0.3",,,,,,,,,
+"D","DKSystem\SimulationRunning","Simulation Running","F","M","*","F","F",,,,,,,,,,"Off","On","Off",,,,,,,,,,,
+"D","DKSystem\WatchDogRunning","Watch Dog Running","F","M","*","F","F",,,,,,,,,,"Off","On","On",,,,,,,,,,,
+"D","DKSystem\WatchDogSimulating","Watch Dog Simulationg","F","M","*","F","F",,,,,,,,,,"Off","On","Off",,,,,,,,,,,
+"D","Finished","MES finished","F","D","P","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM0.1","A",,,,,,
+"D","H\A\CollectiveFault","Collective Fault","F","D","A","F","F",,,,,,,,,,"Ok","Fault","Ok",,,"HSH","DB60KM500.0","A",,,,,,
+"D","H\A\DosingTimeout","Dosing timeout occurred","F","D","A","F","F",,,,,,,,,,"Ok","Fault","Ok",,,"HSH","DB60KM500.1","A",,,,,,
+"D","H\A\LightBeam","Light beam alarm present","F","D","A","F","F",,,,,,,,,,"Ok","Fault","Ok",,,"HSH","DB60KM500.4","A",,,,,,
+"D","H\A\ScaleAlarm","Scale alarm present","F","D","A","F","F",,,,,,,,,,"Ok","Fault","Ok",,,"HSH","DB60KM500.3","A",,,,,,
+"D","H\A\Tolerance","Tolerance alarm occurred","F","D","A","F","F",,,,,,,,,,"Ok","Fault","Ok",,,"HSH","DB60KM500.2","A",,,,,,
+"D","H\AA\AcknowledgeDosingTimeout","Acknowledge scale dosing timeout","F","D","B","F","F",,,,,,,,,,"NoAck","Ack","NoAck",,,"HSH","DB60KM1500.1","A",,,,,,
+"D","H\AA\AcknowledgeTolerance","Acknowledge scale Tolerance Alarm","F","D","B","F","F",,,,,,,,,,"NoAck","Ack","NoAck",,,"HSH","DB60KM1500.2","A",,,,,,
+"A","H\C1\C\NegativeTolerance","Negative tolerance weight","F","D","B","F","F","F","F",0,10000,0,1,0,0,"kg",,,,,,"HSH","DB60KG1040","A",,,,,,
+"A","H\C1\C\PositiveTolerance","Positive Tolerance Weight","F","D","B","F","F","F","F",0,10000,0,1,0,0,"kg",,,,,,"HSH","DB60KG1036","A",,,,,,
+"A","H\C1\C\SetWeight","Set Weight","F","D","B","F","F","F","F",0,9999.9,0,1,0,0,"kg",,,,,,"HSH","DB60KG1032","A",,,,,,
+"A","H\C1\C\StationNumber","Station number","F","D","B","F","F","U","L",0,11,0,1,0,0,"",,,,,,"HSH","DB60KF1030","A",,,,,,
+"A","H\C1\C\WeighType","Weigh type","F","D","B","F","F","U","L",0,100,0,1,0,0,"",,,,,,"HSH","DB60KF1044","A",,,,,,
+"S","H\C1\S\RecordedLotNumber","Recorded LOT number","F","D","A","F","F",,,,,,,,,,,,,15,"","HSH","DB60S86.15","A",,,,,,
+"A","H\C1\S\RecordedWeight","Recorded Weight (Delivered Weight)","F","D","A","F","F","F","F",-10,9999.9,0,1,0,0,"kg",,,,,,"HSH","DB60KG82","A",,,,,,
+"A","H\C1\S\StationNumber","Station number","F","D","A","F","F","U","L",0,11,0,1,0,0,"",,,,,,"HSH","DB60KF80","A",,,,,,
+"D","H\C\AbortComponent","Abort Component","F","D","B","F","F",,,,,,,,,,"Off","Abort","Off",,,"HSH","DB60KM1010.2","A",,,,,,
+"D","H\C\AcknowledgeComponentFinished","Acknowledge Component finished","F","D","B","F","F",,,,,,,,,,"Off","Ack","Off",,,"HSH","DB60KM1010.3","A",,,,,,
+"D","H\C\AcknowledgeManual","Acknowledge completion of manual addition","F","D","B","F","F",,,,,,,,,,"Off","Ack","Off",,,"HSH","DB60KM1010.6","A",,,,,,
+"D","H\C\InspectionPoint","Go to inspection point","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1010.7","A",,,,,,
+"D","H\C\PauseHoldComponent","Pause/Hold Component","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1010.1","A",,,,,,
+"D","H\C\StartComponent","Start Component","F","D","B","F","F",,,,,,,,,,"Off","Start","Off",,,"HSH","DB60KM1010.0","A",,,,,,
+"D","H\C\TakeLidOff","Lid was taken off from IBC","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1011.6","A",,,,,,
+"D","H\C\UnlockLid","Unlock lid tipping station","F","D","B","F","F",,,,,,,,,,"Lock","Unlock","Lock",,,"HSH","DB60KM1010.4","A",,,,,,
+"D","H\S\AcknowledgeIBCLid","Acknowledge lid taken off from IBC","F","D","A","F","F",,,,,,,,,,"Off","Ack","Off",,,"HSH","DB60KM11.6","A",,,,,,
+"D","H\S\Automatic","AZO system in automatic operation = TRUE","F","D","A","F","F",,,,,,,,,,"Manual","Automatic","Manual",,,"HSH","DB60KM10.0","A",,,,,,
+"D","H\S\ComponentActive","Component active","F","D","A","F","F",,,,,,,,,,"Off","Active","Off",,,"HSH","DB60KM10.2","A",,,,,,
+"A","H\S\CurrentGrossWeight","current Gross weight","F","D","A","F","F","F","F",-10,9999.9,0,1,0,0,"kg",,,,,,"HSH","DB60KG16","A",,,,,,
+"A","H\S\CurrentNetWeight","current Net weight","F","D","A","F","F","F","F",-10,9999.9,0,1,0,0,"kg",,,,,,"HSH","DB60KG20","A",,,,,,
+"A","H\S\CurrentStationNumber","current Station number","F","D","A","F","F","U","L",0,22,0,1,0,0,"",,,,,,"HSH","DB60KF14","A",,,,,,
+"D","H\S\InspectionPointReached","Inspection point reached","F","D","A","F","F",,,,,,,,,,"Off","Reached","Off",,,"HSH","DB60KM10.7","A",,,,,,
+"D","H\S\RecipeComponentFinished","Component finished","F","D","A","F","F",,,,,,,,,,"Off","Finished","Off",,,"HSH","DB60KM10.3","A",,,,,,
+"D","H\S\StartComponent","Acknowledge Start Component","F","D","A","F","F",,,,,,,,,,"Off","Ack","Off",,,"HSH","DB60KM10.1","A",,,,,,
+"D","H\S\TippingStationLidClosed","Tipping station lid is closed","F","D","A","F","F",,,,,,,,,,"Open","Closed","Open",,,"HSH","DB60KM10.6","A",,,,,,
+"D","H\S\TippingStationLidLocked","Tipping station lid is locked","F","D","A","F","F",,,,,,,,,,"Unlocked","Locked","Unlocked",,,"HSH","DB60KM10.5","A",,,,,,
+"D","S1\C\EnableTransfer","Enable Transfer - charging station 1","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1012.0","A",,,,,,
+"S","S1\C\LotNumber","LOT number silo1","F","D","B","F","F",,,,,,,,,,,,,15,"","HSH","DB60S1700.15","A",,,,,,
+"D","S1\C\UnlockLid","Unlock lid - charging station 1","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1011.0","A",,,,,,
+"D","S1\S\ChargingStationLowLevel","Charging Station 1 - sensor detects below low level","F","D","A","F","F",,,,,,,,,,"Not Low","Low","Low",,,"HSH","DB60KM12.0","A",,,,,,
+"D","S1\S\LidClosed","Charging Station 2 lid is closed","F","D","A","F","F",,,,,,,,,,"not closed","closed","not closed",,,"HSH","DB60KM11.1","A",,,,,,
+"D","S1\S\LidLocked","Charging Station 1 lid is locked","F","D","A","F","F",,,,,,,,,,"not locked","Locked","not locked",,,"HSH","DB60KM11.0","A",,,,,,
+"S","S1\S\LotNumber","Current lot number silo 1","F","D","A","F","F",,,,,,,,,,,,,15,"","HSH","DB60S24.15","A",,,,,,
+"D","S1\S\StationHighLevel","Station 1 - sensor detects below high level","F","D","A","F","F",,,,,,,,,,"High","Below high","High",,,"HSH","DB60KM12.1","A",,,,,,
+"D","S1\S\StationLowLevel","Station 1 - sensor detects below low level","F","D","A","F","F",,,,,,,,,,"Not Low","Low","Low",,,"HSH","DB60KM12.2","A",,,,,,
+"D","S2\C\EnableTransfer","Enable Transfer - charging station 2","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1012.3","A",,,,,,
+"S","S2\C\LotNumber","LOT number silo2","F","D","B","F","F",,,,,,,,,,,,,15,"","HSH","DB60S1716.15","A",,,,,,
+"D","S2\C\UnlockLid","Unlock lid - charging station 2","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1011.2","A",,,,,,
+"D","S2\S\ChargingStationLowLevel","Charging Station 2 - sensor detects below low level","F","D","A","F","F",,,,,,,,,,"Not Low","Low","Low",,,"HSH","DB60KM12.3","A",,,,,,
+"D","S2\S\LidClosed","Charging Station 1 lid is closed","F","D","A","F","F",,,,,,,,,,"not closed","closed","not closed",,,"HSH","DB60KM11.3","A",,,,,,
+"D","S2\S\LidLocked","Charging Station 2 lid is locked","F","D","A","F","F",,,,,,,,,,"not locked","Locked","not locked",,,"HSH","DB60KM11.2","A",,,,,,
+"S","S2\S\LotNumber","Current lot number silo 2","F","D","A","F","F",,,,,,,,,,,,,15,"","HSH","DB60S40.15","A",,,,,,
+"D","S2\S\StationHighLevel","Station 2 - sensor detects below high level","F","D","A","F","F",,,,,,,,,,"High","Below high","High",,,"HSH","DB60KM12.4","A",,,,,,
+"D","S2\S\StationLowLevel","Station 2 - sensor detects below low level","F","D","A","F","F",,,,,,,,,,"Not Low","Low","Low",,,"HSH","DB60KM12.5","A",,,,,,
+"D","S3\C\EnableTransfer","Enable Transfer - charging station 3","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1012.6","A",,,,,,
+"S","S3\C\LotNumber","LOT number silo3","F","D","B","F","F",,,,,,,,,,,,,15,"","HSH","DB60S1732.15","A",,,,,,
+"D","S3\C\UnlockLid","Unlock lid - charging station 3","F","D","B","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM1011.4","A",,,,,,
+"D","S3\S\ChargingStationLowLevel","Charging Station 3 - sensor detects below low level","F","D","A","F","F",,,,,,,,,,"Not Low","Low","Low",,,"HSH","DB60KM12.6","A",,,,,,
+"D","S3\S\LidClosed","Charging Station 3 lid is closed","F","D","A","F","F",,,,,,,,,,"not closed","closed","not closed",,,"HSH","DB60KM11.5","A",,,,,,
+"D","S3\S\LidLocked","Charging Station 3 lid is locked","F","D","A","F","F",,,,,,,,,,"not locked","Locked","not locked",,,"HSH","DB60KM11.4","A",,,,,,
+"S","S3\S\LotNumber","Current lot number silo 3","F","D","A","F","F",,,,,,,,,,,,,15,"","HSH","DB60S56.15","A",,,,,,
+"D","S3\S\StationHighLevel","Station 3 - sensor detects below high level","F","D","A","F","F",,,,,,,,,,"High","Below high","High",,,"HSH","DB60KM12.7","A",,,,,,
+"D","S3\S\StationLowLevel","Station 3 - sensor detects below low level","F","D","A","F","F",,,,,,,,,,"Not Low","Low","Low",,,"HSH","DB60KM13.0","A",,,,,,
+"D","simulationtags\componentActive","componentActive Copy","F","M","*","F","F",,,,,,,,,,"Off","On","Off",,,,,,,,,,,
+"D","simulationtags\dosingtimeoutacked","","F","M","*","F","F",,,,,,,,,,"Off","On","Off",,,,,,,,,,,
+"A","simulationtags\hopperdischargetimer","Hopper discharge timer","F","M","*","F","F","U","L",0,32000,0,1,0,0,"secs",,,,,,,,,,,,,,
+"A","simulationtags\manualAdditionTimer","Manual addition timer","F","M","*","F","F","U","L",0,32000,0,1,0,0,"",,,,,,,,,,,,,,
+"D","simulationtags\toleranceacked","","F","M","*","F","F",,,,,,,,,,"Off","On","Off",,,,,,,,,,,
+"A","simulationtags\toleranceCompletion","","F","M","*","F","F","F","F",-100,100,0,1,0,0,"",,,,,,,,,,,,,,
+"A","simulationtags\weightIncrement","","F","M","*","F","F","F","F",0,100,1.03,1,0,0,"kg",,,,,,,,,,,,,,
+"D","WatchDog","Watchdog (Set by hsh; Reset by MES)","F","D","P","F","F",,,,,,,,,,"Off","On","Off",,,"HSH","DB60KM0.0","A",,,,,,
+"A","WatchDogTimer","Number of seconds watchdog down","F","M","P","F","F","U","L",0,60000,0,1,0,0,"seconds",,,,,,,,,,,,,,

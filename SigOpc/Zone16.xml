@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<config updateInterval="1000">
+  <tags name="ZONE16.HSH" >
+    <ua endpoint="opc.tcp://10.250.67.83:49320/" />
+    <da endpoint="10.250.67.83" server="Kepware.KEPServerEX.V5" />
+    <tag id="1" name="Collective Fault" line="1" col="0" node="H\A\CollectiveFault" type="bool" />
+    <tag id="2" name="DMS_BatchContinueAck" line="2" col="0" node="DMS_BatchContinueAck" type="bool" />
+    <tag id="3" name="DMS_BatchEnd" line="3" col="0" node="DMS_BatchEnd" type="bool" />
+    <tag id="4" name="DMS_BatchStartAck" line="4" col="0" node="DMS_BatchStartAck" type="bool" />
+    <tag id="5" name="DMS_BatchStatus" line="5" col="0" node="DMS_BatchStatus" type="byte" />
+    <tag id="6" name="DMS_Bits" line="6" col="0" node="DMS_Bits" type="int" />
+    <tag id="7" name="DMS_CommsBusy" line="7" col="0" node="DMS_CommsBusy" type="bool" />
+    <tag id="8" name="DMS_ContainerID" line="8" col="0" node="DMS_ContainerID" type="string" />
+    <tag id="9" name="DMS_DialogMessage" line="9" col="0" node="DMS_DialogMessage" type="string" />
+    <tag id="10" name="DMS_DialogResult" line="10" col="0" node="DMS_DialogResult" type="bool" />
+    <tag id="11" name="DMS_DosedResult" line="11" col="0" node="DMS_DosedResult" type="bool" />
+    <tag id="12" name="DMS_DosedWeight" line="12" col="0" node="DMS_DosedWeight" type="double" />
+    <tag id="13" name="DMS_DownloadAck" line="13" col="0" node="DMS_DownloadAck" type="bool" />
+    <tag id="14" name="DMS_LotCode" line="14" col="0" node="DMS_LotCode" type="string" />
+    <tag id="15" name="DMS_MaterialCode" line="15" col="0" node="DMS_MaterialCode" type="string" />
+    <tag id="16" name="DMS_NetWeight" line="16" col="0" node="DMS_NetWeight" type="double" />
+    <tag id="17" name="DMS_SFOID" line="17" col="0" node="DMS_SFOID" type="string" />
+    <tag id="18" name="DMS_SubBatchID" line="18" col="0" node="DMS_SubBatchID" type="byte" />
+
+  </tags>
+  <tags name="DISPENSING.MES">
+    <ua endpoint="opc.tcp://10.250.67.83:49320/" />
+    <da endpoint="10.250.67.83" server="Kepware.KEPServerEX.V5"/>
+
+
+    <tag id="21" name="MES_BatchAbort" line="1" col="1" node="MES_BatchAbort" type="bool" />
+    <tag id="22" name="MES_BatchContinue" line="2" col="1" node="MES_BatchContinue" type="bool" />
+    <tag id="23" name="MES_BatchEndAck" line="3" col="1" node="MES_BatchEndAck" type="bool" />
+    <tag id="24" name="MES_BatchStart" line="4" col="1" node="MES_BatchStart" type="bool" />
+    <tag id="25" name="MES_Bits" line="5" col="1" node="MES_Bits" type="int" />
+    <tag id="26" name="MES_BOMDetail" line="6" col="1" node="MES_BOMDetail" type="string" />
+    <tag id="27" name="MES_CommsBusy" line="7" col="1" node="MES_CommsBusy" type="bool" />
+    <tag id="28" name="MES_ContainerID" line="8" col="1" node="MES_ContainerID" type="string" />
+    <tag id="29" name="MES_DialogMessage" line="9" col="1" node="MES_DialogMessage" type="string" />
+    <tag id="30" name="MES_DialogResult" line="10" col="1" node="MES_DialogResult" type="bool" />
+    <tag id="31" name="MES_DosedResultAck" line="11" col="1" node="MES_DosedResultAck" type="bool" />
+    <tag id="32" name="MES_DownloadRequest" line="12" col="1" node="MES_DownloadRequest" type="bool" />
+    <tag id="33" name="MES_SFOID" line="13" col="1" node="MES_SFOID" type="string" />
+    <tag id="34" name="MES_SubBatchID" line="14" col="1" node="MES_SubBatchID" type="byte" />
+
+  </tags>
+
+
+</config>
