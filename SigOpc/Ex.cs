@@ -16,18 +16,18 @@ using OpcLabs.EasyOpc.DataAccess.Reactive;
 using OpcLabs.EasyOpc.UA;
 using OpcLabs.EasyOpc.UA.OperationModel;
 using OpcLabs.EasyOpc.UA.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 
 
 namespace SigOpc
 {
-    using System.Reactive.Concurrency;
-    using System.Reactive.Disposables;
     using static TagDisplay;
     using static XmlUtilities;
 
     public class Ex
     {
-        public static async Task Do()
+        public static async Task Do(IObservable<string> input)
         {
             Clear();
             using (new ConsoleColourer(Yellow, Black))
@@ -36,52 +36,49 @@ namespace SigOpc
             new ConsolePositioner(0, 1, BufferWidth);
             Write("> ");
 
-            var consoleO = ConsoleObservable.ConsoleInputObservable().Publish();
-            using (consoleO.Connect())
-            {
 
 
-                var config = Config();
-                
-                // open or quit commands
-                var os = consoleO
-                    .Where(s => s != null)
-                    .Select(s=>s.Trim())
-                    .TakeWhile(s => !s.StartsWith("q"))
-                    .Where(s => s.StartsWith("d") || s.StartsWith("u"))
-                    .Select(command => {
-                        var commands = command.Split(' ');
-                        var group = commands.Length>1 ? commands[1] : "";
-                        var cols = Collections(config, group);
-                        return  new Subs
-                        {
-                            command = command,
-                            collections = cols,
-                            tags = cols.SelectMany(c =>
-                                c.Col
-                                    .Elements("tags")
-                                    .SelectMany(tags => tags.Elements("tag").Select((XElement tag, int index) => Tuple.Create(tag, index)))
-                                    .Select((Tuple<XElement, int> tag, int index) =>
-                                        new Sub
-                                        {
-                                            tag = tag.Item1,
-                                            id = $"{c.Index}.{index}",
-                                            column = c.Index,
-                                            index = tag.Item2,
-                                            line = index + tag.Item1.Parent.Parent.Elements("tags").ToList().IndexOf(tag.Item1.Parent) + 1
-                                        }
-                                    )
+
+            var config = Config();
+
+            // open or quit commands
+            var os = input
+                .Where(s => s != null)
+                .Select(s => s.Trim())
+                .TakeWhile(s => !s.StartsWith("q"))
+                .Where(s => s.StartsWith("d") || s.StartsWith("u"))
+                .Select(command =>
+                {
+                    var commands = command.Split(' ');
+                    var group = commands.Length > 1 ? commands[1] : "";
+                    var cols = Collections(config, group);
+                    return new Subs
+                    {
+                        command = command,
+                        collections = cols,
+                        tags = cols.SelectMany(c =>
+                            c.Col
+                                .Elements("tags")
+                                .SelectMany(tags => tags.Elements("tag").Select((XElement tag, int index) => Tuple.Create(tag, index)))
+                                .Select((Tuple<XElement, int> tag, int index) =>
+                                    new Sub
+                                    {
+                                        tag = tag.Item1,
+                                        id = $"{c.Index}.{index}",
+                                        column = c.Index,
+                                        index = tag.Item2,
+                                        line = index + tag.Item1.Parent.Parent.Elements("tags").ToList().IndexOf(tag.Item1.Parent) + 1
+                                    }
                                 )
-
-
-                        };
+                            )
+                    };
 
                         //return command;
                     })
-                    .Publish();
-                var validCommands = os.Where(s => s.command.Split(' ').Length > 1);
-                var invalidCommands = os.Where(s => s.command.Split(' ').Length == 1);
-                var disposables = new List<IDisposable>
+                .Publish();
+            var validCommands = os.Where(s => s.command.Split(' ').Length > 1);
+            var invalidCommands = os.Where(s => s.command.Split(' ').Length == 1);
+            var disposables = new List<IDisposable>
                 {
                     os.Connect(),
                     validCommands.Subscribe(subs=> {
@@ -95,8 +92,8 @@ namespace SigOpc
                         DisplayException($"valid groups are {string.Join(" | " ,config.Root.Elements("group").Select(g=>g.Attribute("name").Value).ToArray())}");
                     }),
                     Reader(validCommands).Subscribe(v => PosDisplay(v.Id, v.Line, v.Index, v.Tag, v.Value, v.Quality)),
-                    Commander(validCommands, consoleO, s=> s.First() == "w").Subscribe(subsCommand => WithException(()=> RxxWriter(subsCommand))),
-                    consoleO.Subscribe(c =>
+                    Commander(validCommands, input, s=> s.First() == "w").Subscribe(subsCommand => WithException(()=> RxxWriter(subsCommand))),
+                    input.Subscribe(c =>
                         {
                             lock (consoleLock)
                             {
@@ -105,7 +102,7 @@ namespace SigOpc
                                 //WindowTop = 0;
                             }
                         }),
-                    Commander(validCommands, consoleO, s => s.First() == "s").Select(subsCommand => Handle(()=>Scanner(subsCommand))).Switch().Subscribe(
+                    Commander(validCommands, input, s => s.First() == "s").Select(subsCommand => Handle(()=>Scanner(subsCommand))).Switch().Subscribe(
                         s =>
                             {
                                 lock (consoleLock)
@@ -117,15 +114,15 @@ namespace SigOpc
                                 }
                             }
                         ),
-                    Commander(os, consoleO, s => s.First() != "s" && s.First() != "w").Subscribe(s=> DisplayException($"command is unrecognised"))
+                    Commander(os, input, s => s.First() != "s" && s.First() != "w").Subscribe(s=> DisplayException($"command is unrecognised"))
                 }.Disposer();
-                using (disposables) await os;                   
-            }
-            
+            using (disposables) await os.Concat(Observable.Return(default(Subs)));
+
+
         }
         static IObservable<string> Scanner(SubsCommand subsCommand)
         {
-            if(!subsCommand.Command.Any())
+            if (!subsCommand.Command.Any())
                 return Observable.Return("");
             var id = subsCommand.Command.First();
             var tag = subsCommand.Subs.tags.Single(t => t.id == id).tag;
@@ -150,9 +147,9 @@ namespace SigOpc
             Write("> ");
         }
 
-        static IObservable<SubsCommand> Commander(IObservable<Subs> os, IObservable<string> consoleO, Func<IEnumerable<string>, bool> test)
+        static IObservable<SubsCommand> Commander(IObservable<Subs> os, IObservable<string> input, Func<IEnumerable<string>, bool> test)
         {
-            return os.Select(subs => consoleO.Select(s => s.Split(' ')).Where(s => test(s)).Select(s => s.Skip(1)).Select(s => new SubsCommand { Subs = subs, Command = s })).Switch();
+            return os.Select(subs => input.Select(s => s.Split(' ')).Where(s => test(s)).Select(s => s.Skip(1)).Select(s => new SubsCommand { Subs = subs, Command = s })).Switch();
         }
 
         static IObservable<ItemValue> Reader(IObservable<Subs> os)
@@ -173,23 +170,23 @@ namespace SigOpc
 
         static void UaRxxWriter(XElement tag, object value)
         {
-                    using (var uaClient = new EasyUAClient())
-                    {
-                        uaClient.WriteValue(
-                            new UAWriteValueArguments(
-                               GetElementAttribute(tag, "ua", "endpoint"),
-                               $"ns=2;s={tag.Parent.Attribute("name").Value}.{ tag.Attribute("node").Value}",
-                               value
-                            )
-                        );
-                    }
-            
+            using (var uaClient = new EasyUAClient())
+            {
+                uaClient.WriteValue(
+                    new UAWriteValueArguments(
+                       GetElementAttribute(tag, "ua", "endpoint"),
+                       $"ns=2;s={tag.Parent.Attribute("name").Value}.{ tag.Attribute("node").Value}",
+                       value
+                    )
+                );
+            }
+
         }
         // configured da client using rx
         static IObservable<ItemValue> UaRxxReader(Subs subs)
         {
-            using(new Timer("UaRxxReader"))
-                return RxxReader(subs,Ua);
+            using (new Timer("UaRxxReader"))
+                return RxxReader(subs, Ua);
 
 
         }
@@ -253,7 +250,7 @@ namespace SigOpc
 
         static IObservable<ItemValue> RxxReader(Subs subs, Func<string, XElement, IObservable<SubValue>> subscriber)
         {
-            
+
 
 
             subs.tags.ToList().ForEach(t => TitleDisplay(t.line, t.column, t.tag));
@@ -276,7 +273,7 @@ namespace SigOpc
                         Value = val.Value,
                         Quality = val.Quality
                     })
-            ).ToList()).SubscribeOn(Scheduler.Default); 
+            ).ToList()).SubscribeOn(Scheduler.Default);
         }
 
         class SubValue
@@ -300,9 +297,9 @@ namespace SigOpc
         {
             public XElement tag { get; set; }
             public string id { get; set; }
-            public int column { get; set; } 
-            public int index { get; set; } 
-            public int line { get; set; } 
+            public int column { get; set; }
+            public int index { get; set; }
+            public int line { get; set; }
         }
     }
 }

@@ -42,33 +42,44 @@ namespace SigOpc
         }
         static async Task MainAsync(string[] args) { 
 
-           BackgroundColor = Black;
-           ForegroundColor = Gray;
+            BackgroundColor = Black;
+            ForegroundColor = Gray;
+            var consoleO = ConsoleObservable.ConsoleInputObservable().Publish();
+            using (consoleO.Connect())
+            {
+                string next;
+                while ((next = await consoleO.Take(1)) != "q")
+                {
 
-           //pick an option based on command line
-           try {
-                switch(args[0].ToLower()){
-                    case "e":
-                        await Ex.Do();
-                        break;
-                    case "uxsim":
-                        UaRxSim();
-                        break;
-                    case "ulog":
-                        UaLog(args[1], args[2]);
-                        break;
-                    default:
-                        break;
+                    //pick an option based on command line
+                    try
+                    {
+                        switch (next.ToLower())
+                        {
+                            case "e":
+                                await Ex.Do(consoleO);
+                                break;
+                            case "dep":
+                                await Dependency.Do(consoleO);
+                                break;
+                            case "uxsim":
+                                UaRxSim();
+                                break;
+                            case "ulog":
+                                UaLog(args[1], args[2]);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        using (new ConsoleColourer(Black, Yellow))
+                            WriteLine($"Exception: {ex.Message}");
+
                     }
                 }
-                catch (Exception ex)
-                {
-                    using (new ConsoleColourer(Black, Yellow))
-                        WriteLine($"Exception: {ex.Message}");
-                    
-                }
-
-            
+            } 
             System.Threading.Thread.Sleep(2000);
 
         }
